@@ -3,10 +3,11 @@ use std::fs;
 mod day1;
 mod day2;
 mod day3;
+mod day4;
 
 fn main() {
-    day3::first();
-    day3::second();
+    day4::first();
+    day4::second();
 }
 
 fn read_lines_of_file(path: &str) -> Vec<String> {
