@@ -18,47 +18,37 @@ pub fn first() {
         .map(|line| line.chars().collect::<Vec<char>>())
         .collect();
 
-    let sum: usize = map
-        .iter()
-        .enumerate()
-        .map(|(y, line)| {
-            let a: usize = line
-                .iter()
-                .enumerate()
-                .map({
-                    let value = map.clone();
+    let width = map.first().unwrap().len();
+    let height = map.len();
 
-                    move |(x, val)| {
-                        if *val != '@' {
-                            return 0;
-                        }
+    let mut sum = 0;
 
-                        let a: [(isize, isize); 8] = [
-                            (-1, -1),
-                            (-1, 0),
-                            (-1, 1),
-                            (0, -1),
-                            (0, 1),
-                            (1, -1),
-                            (1, 0),
-                            (1, 1),
-                        ];
+    (0..height).for_each(|y| {
+        (0..width).for_each(|x| {
+            if map[y][x] == '@' {
+                let a: [(isize, isize); 8] = [
+                    (-1, -1),
+                    (-1, 0),
+                    (-1, 1),
+                    (0, -1),
+                    (0, 1),
+                    (1, -1),
+                    (1, 0),
+                    (1, 1),
+                ];
 
-                        let hits = a
-                            .iter()
-                            .map(|(ny, nx)| {
-                                value[((y as isize) + ny) as usize][((x as isize) + nx) as usize]
-                            })
-                            .filter(|a| *a == '@')
-                            .count();
+                let hits = a
+                    .iter()
+                    .map(|(ny, nx)| map[((y as isize) + ny) as usize][((x as isize) + nx) as usize])
+                    .filter(|a| *a == '@')
+                    .count();
 
-                        (hits < 4) as usize
-                    }
-                })
-                .sum();
-            a
+                if hits < 4 {
+                    sum += 1;
+                }
+            }
         })
-        .sum();
+    });
 
     println!("{}", sum);
 }
@@ -81,47 +71,45 @@ pub fn second() {
         .map(|line| line.chars().collect::<Vec<char>>())
         .collect();
 
-    let sum: usize = map
-        .iter()
-        .enumerate()
-        .map(|(y, line)| {
-            let a: usize = line
-                .iter()
-                .enumerate()
-                .map({
-                    let value = map.clone();
+    let width = map.first().unwrap().len();
+    let height = map.len();
 
-                    move |(x, val)| {
-                        if *val != '@' {
-                            return 0;
-                        }
+    let mut sum = 0;
+    let mut prev_sum = -1;
 
-                        let a: [(isize, isize); 8] = [
-                            (-1, -1),
-                            (-1, 0),
-                            (-1, 1),
-                            (0, -1),
-                            (0, 1),
-                            (1, -1),
-                            (1, 0),
-                            (1, 1),
-                        ];
+    while sum != prev_sum {
+        prev_sum = sum;
 
-                        let hits = a
-                            .iter()
-                            .map(|(ny, nx)| {
-                                value[((y as isize) + ny) as usize][((x as isize) + nx) as usize]
-                            })
-                            .filter(|a| *a == '@')
-                            .count();
+        (0..height).for_each(|y| {
+            (0..width).for_each(|x| {
+                if map[y][x] == '@' {
+                    let a: [(isize, isize); 8] = [
+                        (-1, -1),
+                        (-1, 0),
+                        (-1, 1),
+                        (0, -1),
+                        (0, 1),
+                        (1, -1),
+                        (1, 0),
+                        (1, 1),
+                    ];
 
-                        (hits < 4) as usize
+                    let hits = a
+                        .iter()
+                        .map(|(ny, nx)| {
+                            map[((y as isize) + ny) as usize][((x as isize) + nx) as usize]
+                        })
+                        .filter(|a| *a == '@')
+                        .count();
+
+                    if hits < 4 {
+                        map[y][x] = 'x';
+                        sum += 1;
                     }
-                })
-                .sum();
-            a
-        })
-        .sum();
+                }
+            })
+        });
+    }
 
     println!("{}", sum);
 }
