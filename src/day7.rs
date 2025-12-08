@@ -57,7 +57,7 @@ pub fn second() {
     let height = map.len();
     let width = map.first().unwrap().len();
 
-    (0..height - 1).for_each(|y| {
+    (0..height - 2).for_each(|y| {
         (0..width).for_each(|x| {
             let val = map[y][x];
             if val > 0 {
@@ -66,13 +66,12 @@ pub fn second() {
                     map[y + 1][x + 1] = val + map[y + 1][x + 1];
                     map[y + 1][x - 1] = val + map[y + 1][x - 1];
                 } else {
-                    map[y + 1][x] = val;
+                    map[y + 1][x] = val + map[y + 1][x];
                 }
             }
         });
     });
 
     let sum: i64 = map[height - 2].iter().filter(|v| **v != -1).sum();
-
     println!("{}", sum);
 }
