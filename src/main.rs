@@ -5,11 +5,12 @@ mod day2;
 mod day3;
 mod day4;
 mod day5;
+mod day6;
 mod day7;
 
 fn main() {
-    day7::first();
-    day7::second();
+    day6::first();
+    day6::second();
 }
 
 fn read_lines_of_file(path: &str) -> Vec<String> {
