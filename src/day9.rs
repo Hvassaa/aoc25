@@ -73,12 +73,13 @@ pub fn second() {
 
     let ys: HashSet<u64> = b.iter().map(|(_, y)| *y).collect();
 
-    let mut map: HashMap<u64, Vec<Range<u64>>> = HashMap::new();
-
     let mut ys: Vec<u64> = ys.iter().map(|y| *y).collect();
     ys.sort();
+    let mut mapa: HashMap<u64, Vec<Range<u64>>> = HashMap::new();
 
-    ys.iter().for_each(|y| {
+    println!("total {}", ys.len());
+    ys.iter().enumerate().for_each(|(i, y)| {
+        println!("handling {}", i);
         let mut match_y: Vec<u64> = b
             .iter()
             .filter(|(_, yp)| y == yp)
@@ -86,31 +87,26 @@ pub fn second() {
             .collect();
 
         match_y.sort();
-        let (_, _, qqq) = match_y.iter().fold((0, 0, vec![]), |acc, e| {
-            let start = acc.0;
-            let prev = acc.1;
-            let ranges = acc.2;
 
-            if start == 0 {
-                // println!("{}", 1);
-                return (*e, *e, ranges);
+        let mut start: Option<u64> = Option::None;
+        let mut ranges: Vec<Range<u64>> = vec![];
+
+        (1..match_y.len()).for_each(|i| {
+            let prev = match_y[i - 1];
+            let current = match_y[i];
+
+            if start.is_none() {
+                start = Option::Some(prev);
             }
 
-            if prev == e + 1 {
-                // println!("{}", 2);
-                return (start, *e, ranges);
+            if prev == current - 1 && i < match_y.len() - 1 {
+                return;
             }
-
-            // println!("{}", 3);
-
-            let mut ranges = ranges;
-            ranges.push(start..prev);
-
-            (*e, *e, ranges)
+            ranges.push(start.unwrap()..current + 1);
+            start = Option::None;
         });
 
-        println!("{}, {:?}", y, qqq);
-        map.insert(*y, qqq);
+        mapa.insert(*y, ranges);
     });
 
     println!("running for {}", a.len().pow(2));
@@ -120,33 +116,62 @@ pub fn second() {
         .enumerate()
         .map(|(i, (x1, y1))| {
             a.iter()
+                .filter(|(x2, y2)| x1 != x2 && y1 != y2)
                 .enumerate()
                 .filter(|(j, (x2, y2))| {
-                    // println!("{}", (i + 1) * (j + 1));
+                    println!("{}", (i + 1) * (j + 1));
                     let max_x = max(*x1, *x2);
                     let min_x = min(*x1, *x2);
                     let max_y = max(*y1, *y2);
                     let min_y = min(*y1, *y2);
 
-                    let x_range = min_x..max_x + 1;
-                    let y_range = min_y..max_y + 1;
-
-                    y_range.clone().any(|y| {
-                        let asd = map.get(&y);
-                        if asd.is_none() {
-                            return false;
+                    let mut x_range = min_x..max_x + 1;
+                    let mut y_range = min_y..max_y + 1;
+                    let top = {
+                        let ranges = mapa.get(&y_range.start);
+                        match ranges {
+                            None => false,
+                            Some(ranges) => {
+                                x_range.all(|x| ranges.iter().any(|range| range.contains(&x)))
+                            }
                         }
+                    };
 
-                        let ranges = asd.unwrap();
-                        x_range
-                            .clone()
-                            .all(|x| ranges.iter().filter(|r| r.contains(&x)).nth(1).is_some())
-                    })
+                    let bot = {
+                        let ranges = mapa.get(&(y_range.end));
+                        match ranges {
+                            None => false,
+                            Some(ranges) => {
+                                x_range.all(|x| ranges.iter().any(|range| range.contains(&x)))
+                            }
+                        }
+                    };
+
+                    let left_right = {
+                        let xs = x_range.start;
+                        let xe = x_range.end;
+                        y_range.all(|y| {
+                            let ranges = mapa.get(&y);
+
+                            match ranges {
+                                None => false,
+                                Some(ranges) => {
+                                    ranges.iter().any(|range| range.contains(&xs))
+                                        && ranges.iter().any(|range| range.contains(&xe))
+                                }
+                            }
+                        })
+                    };
+
+                    top && bot && left_right
                 })
+                // .inspect(|(_, qqq)| println!("{:?} {:?}", (x1, y1), qqq))
                 .map(|(_, (x2, y2))| (x1.abs_diff(*x2) + 1) * (y1.abs_diff(*y2) + 1))
                 .max()
         })
-        .max();
+        .max()
+        .unwrap()
+        .unwrap();
 
-    // println!("{:?}", map);
+    println!("{:?}", b);
 }

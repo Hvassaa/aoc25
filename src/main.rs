@@ -11,8 +11,7 @@ mod day9;
 
 fn main() {
     // day9::first();
-    // day9::second();
-    day7::second();
+    day9::second();
 }
 
 fn read_lines_of_file(path: &str) -> Vec<String> {
