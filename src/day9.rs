@@ -1,6 +1,7 @@
 use std::{
     cmp::{max, min},
-    collections::HashSet,
+    collections::{HashMap, HashSet},
+    ops::Range,
 };
 
 use crate::read_lines_of_file;
@@ -70,6 +71,48 @@ pub fn second() {
         current_pos = next_pos;
     });
 
+    let ys: HashSet<u64> = b.iter().map(|(_, y)| *y).collect();
+
+    let mut map: HashMap<u64, Vec<Range<u64>>> = HashMap::new();
+
+    let mut ys: Vec<u64> = ys.iter().map(|y| *y).collect();
+    ys.sort();
+
+    ys.iter().for_each(|y| {
+        let mut match_y: Vec<u64> = b
+            .iter()
+            .filter(|(_, yp)| y == yp)
+            .map(|(x, _)| *x)
+            .collect();
+
+        match_y.sort();
+        let (_, _, qqq) = match_y.iter().fold((0, 0, vec![]), |acc, e| {
+            let start = acc.0;
+            let prev = acc.1;
+            let ranges = acc.2;
+
+            if start == 0 {
+                // println!("{}", 1);
+                return (*e, *e, ranges);
+            }
+
+            if prev == e + 1 {
+                // println!("{}", 2);
+                return (start, *e, ranges);
+            }
+
+            // println!("{}", 3);
+
+            let mut ranges = ranges;
+            ranges.push(start..prev);
+
+            (*e, *e, ranges)
+        });
+
+        println!("{}, {:?}", y, qqq);
+        map.insert(*y, qqq);
+    });
+
     println!("running for {}", a.len().pow(2));
 
     let b = a
@@ -79,7 +122,7 @@ pub fn second() {
             a.iter()
                 .enumerate()
                 .filter(|(j, (x2, y2))| {
-                    println!("{}", (i + 1) * (j + 1));
+                    // println!("{}", (i + 1) * (j + 1));
                     let max_x = max(*x1, *x2);
                     let min_x = min(*x1, *x2);
                     let max_y = max(*y1, *y2);
@@ -88,53 +131,22 @@ pub fn second() {
                     let x_range = min_x..max_x + 1;
                     let y_range = min_y..max_y + 1;
 
-                    let x_contained = x_range.clone().all(|x| {
-                        let (x_to_find_1, y_to_find_1) = (x, y_range.start);
-                        let (x_to_find_2, y_to_find_2) = (x, y_range.end - 1);
-                        let under1 = b
-                            .iter()
-                            .any(|(x, y)| *x == x_to_find_1 && *y >= y_to_find_1);
-                        let over1 = b
-                            .iter()
-                            .any(|(x, y)| *x == x_to_find_1 && *y <= y_to_find_1);
+                    y_range.clone().any(|y| {
+                        let asd = map.get(&y);
+                        if asd.is_none() {
+                            return false;
+                        }
 
-                        let under2 = b
-                            .iter()
-                            .any(|(x, y)| *x == x_to_find_2 && *y >= y_to_find_2);
-                        let over2 = b
-                            .iter()
-                            .any(|(x, y)| *x == x_to_find_2 && *y <= y_to_find_2);
-                        under1 && over1 && under2 && over2
-                    });
-
-                    let y_contained = y_range.clone().all(|y| {
-                        let (x_to_find_1, y_to_find_1) = (x_range.start, y);
-                        let (x_to_find_2, y_to_find_2) = (x_range.end - 1, y);
-                        let under1 = b
-                            .iter()
-                            .any(|(x, y)| *y == y_to_find_1 && *x >= x_to_find_1);
-                        let over1 = b
-                            .iter()
-                            .any(|(x, y)| *y == y_to_find_1 && *x <= x_to_find_1);
-
-                        let under2 = b
-                            .iter()
-                            .any(|(x, y)| *y == y_to_find_2 && *x >= x_to_find_2);
-                        let over2 = b
-                            .iter()
-                            .any(|(x, y)| *y == y_to_find_2 && *x <= x_to_find_2);
-
-                        under1 && over1 && under2 && over2
-                    });
-
-                    x_contained && y_contained
+                        let ranges = asd.unwrap();
+                        x_range
+                            .clone()
+                            .all(|x| ranges.iter().filter(|r| r.contains(&x)).nth(1).is_some())
+                    })
                 })
                 .map(|(_, (x2, y2))| (x1.abs_diff(*x2) + 1) * (y1.abs_diff(*y2) + 1))
                 .max()
         })
-        .max()
-        .unwrap()
-        .unwrap();
+        .max();
 
-    println!("{}", b);
+    // println!("{:?}", map);
 }
